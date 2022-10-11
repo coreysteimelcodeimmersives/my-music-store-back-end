@@ -1,6 +1,7 @@
 require('dotenv').config();
 const bodyParser = require('body-parser');
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const userRouter = require('./routes/userRouter');
 
@@ -16,6 +17,8 @@ mongoose
   .catch(() => {
     console.log('error connecting to mongo db, what?');
   });
+
+app.use(cors());
 
 app.use(bodyParser.json());
 
