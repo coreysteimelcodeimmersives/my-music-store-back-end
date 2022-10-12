@@ -24,11 +24,11 @@ app.use(bodyParser.json());
 
 app.use(userRouter);
 
-const errorHandler = (error, req, res, next) => {
-  console.log('Error: ', error);
-  res.status(500).send('There was an error, please try again.');
-};
-app.use(errorHandler);
+// const errorHandler = (error, req, res, next) => {
+//   console.log('Error: ', error);
+//   res.status(500).send('There was an error, please try again.');
+// };
+// app.use(errorHandler);
 
 app.listen(port, () =>
   console.log('Music Store server is listening for request')
