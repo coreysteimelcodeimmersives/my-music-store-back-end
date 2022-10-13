@@ -2,6 +2,7 @@ const express = require('express');
 const UserModel = require('../models/UserModel');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const jwt = require('jsonwebtoken');
 
 const cleanUser = (userDocument) => {
   return {
@@ -14,7 +15,25 @@ const cleanUser = (userDocument) => {
   };
 };
 
+const getToken = (userId) => {
+  return jwt.sign({ userId, iat: Date.now() }, process.env.AUTH_SECRET_KEY);
+};
+
 const userRouter = express.Router();
+
+userRouter.get('/test-auth', async (req, res, next) => {
+  //check if user is logged in ... they should have valid JWT
+
+  try {
+    if (!req.user) {
+      return res.status(403).send('User not logged in');
+    }
+
+    res.send({ userFirstName: req.user.firstName });
+  } catch (error) {
+    next(error);
+  }
+});
 
 userRouter.post('/register-user', async (req, res, next) => {
   try {
@@ -36,6 +55,9 @@ userRouter.post('/register-user', async (req, res, next) => {
     });
 
     await userDocument.save();
+
+    const token = getToken(userDocument._id);
+    res.cookie('session_token', token, { httpOnly: true, secure: false });
 
     res.send({
       user: cleanUser(userDocument),
@@ -70,6 +92,9 @@ userRouter.post('/sign-in', async (req, res, next) => {
 
     //The user can be successfully authenticated
     // Send user data back to client
+    const token = getToken(foundUser._id);
+    res.cookie('session_token', token, { httpOnly: true, secure: false });
+
     res.send({
       user: cleanUser(foundUser),
     });

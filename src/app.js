@@ -4,6 +4,9 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const userRouter = require('./routes/userRouter');
+const cookieParser = require('cookie-parser');
+const UserModel = require('../src/models/UserModel');
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT;
 
@@ -18,9 +21,49 @@ mongoose
     console.log('error connecting to mongo db, what?');
   });
 
-app.use(cors());
+app.use(
+  cors({
+    credentials: true,
+    origin: 'http://localhost:3000',
+  })
+);
+app.use(cookieParser());
 
 app.use(bodyParser.json());
+
+// Authorization Middleware
+app.use(async (req, res, next) => {
+  try {
+    const { session_token: sessionToken } = req.cookies;
+    if (!sessionToken) {
+      return next();
+    }
+
+    //this returns the data in the JWT or it throws if the jwt is not valid
+    const { userId, iat } = jwt.verify(
+      sessionToken,
+      process.env.AUTH_SECRET_KEY
+    );
+
+    // if token too old we reject it
+    if (iat < Date.now() - 30 * 24 * 60 * 60 * 10000) {
+      return res.status(401).send('Session expired');
+    }
+
+    const foundUser = await UserModel.findOne({ _id: userId });
+
+    if (!foundUser) {
+      return next();
+    }
+
+    // after we find user in the token we add it to the request
+    req.user = foundUser;
+
+    return next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.use(userRouter);
 
