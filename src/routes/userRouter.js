@@ -21,6 +21,11 @@ const getToken = (userId) => {
 
 const userRouter = express.Router();
 
+userRouter.get('/sign-out', (req, res, next) => {
+  res.clearCookie('session_token');
+  res.send('Signed out successfully');
+});
+
 userRouter.get('/test-auth', async (req, res, next) => {
   //check if user is logged in ... they should have valid JWT
 
