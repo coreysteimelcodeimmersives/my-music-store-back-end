@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const userRouter = require('./routes/userRouter');
+const productRouter = require('./routes/productRouter');
 const cookieParser = require('cookie-parser');
 const UserModel = require('../src/models/UserModel');
 const jwt = require('jsonwebtoken');
@@ -46,7 +47,7 @@ app.use(async (req, res, next) => {
     );
 
     // if token too old we reject it
-    if (iat < Date.now() - 30 * 24 * 60 * 60 * 10000) {
+    if (iat < Date.now() - 30 * 24 * 60 * 60 * 1000) {
       return res.status(401).send('Session expired');
     }
 
@@ -66,6 +67,8 @@ app.use(async (req, res, next) => {
 });
 
 app.use(userRouter);
+
+app.use(productRouter);
 
 // const errorHandler = (error, req, res, next) => {
 //   console.log('Error: ', error);
